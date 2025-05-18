@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Spending Coach</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f2f2f2;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    form, textarea, button {
+      margin-top: 15px;
+    }
+
+    #response {
+      margin-top: 20px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      background-color: #ffffff;
+      max-width: 600px;
+      min-height: 80px;
+      white-space: pre-wrap;
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 600px;
+      height: 100px;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Spending Coach</h1>
+
+  <!-- Upload Receipt -->
+  <h2>Upload Receipt</h2>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" id="fileInput" required>
+    <button type="submit">Upload</button>
+  </form>
+
+  <!-- Ask AI Section -->
+  <h2>Ask a Question</h2>
+  <textarea id="queryInput" placeholder="Why did I spend so much this week?"></textarea>
+  <br>
+  <button onclick="askQuestion()">Ask</button>
+
+  <!-- AI Response Box -->
+  <div id="response"></div>
+
+  <script>
+    // Handle receipt upload
+    document.getElementById('uploadForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('file', document.getElementById('fileInput').files[0]);
+
+      fetch('/upload_receipt', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert('✅ Receipt processed:\n' + JSON.stringify(data, null, 2));
+        })
+        .catch(error => {
+          console.error('❌ Upload error:', error);
+          alert('Upload failed. Please try again.');
+        });
+    });
+
+    // Handle user questions
+    function askQuestion() {
+      const query = document.getElementById('queryInput').value.trim();
+      if (!query) {
+        alert("Please type a question first.");
+        return;
+      }
+
+      document.getElementById('response').innerText = "🤖 Thinking...";
+
+      fetch('/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: query })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('response').innerText = data.response || "No response received.";
+        })
+        .catch(error => {
+          console.error('❌ Error asking question:', error);
+          document.getElementById('response').innerText = "Error getting response. Try again.";
+        });
+    }
+  </script>
+</body>
+</html>
